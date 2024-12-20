@@ -13,21 +13,46 @@ class Optimizer:
 class Node:
 
     def __init__(self, data, op=None, input_nodes=None, gradient=0):
-        pass
+        self.data = data
+        self.gradient = gradient
+
+        # For backprop
+        self.input_nodes = input_nodes or []
+        self.op = op
 
     def __str__(self):
-        pass
+        return f'Data: {self.data}'
 
     # instantiates back prop
     def compute_gradient(self):
-        pass
+        # recursively zeroes the gradients
+        self.zero_gradient()
+
+        # calculate gradient
+        self.autograd()
+
+        # take gradient step
+        self.optimizer.take_gradient_step(self)
 
     # reset the gradient
     def zero_gradient(self):
-        pass
+        self.gradient = 0
+        for node in self.input_nodes:
+            node.zero_gradient()
+
     # recursively calls backward
     def autograd(self, grad=1):
-        pass
+
+        # add to global grad
+        self.gradient += grad
+
+        if self.op:
+            # calculate amount of gradient to send to each node
+            new_grads = self.op.backward(grad)
+
+            for node, grad in zip(self.input_nodes, new_grads):
+                node.autograd(grad)
+
 
 # regular node but with optimizer
 class LossNode(Node):
@@ -52,13 +77,14 @@ class Operation:
 
 class Add(Operation):
     def __init__(self, *nodes):
-        pass
+        self.nodeList = list(nodes)
 
     def forward(self):
-        pass
+        return Node(sum(node.data for node in self.nodeList), op=self,
+                    input_nodes=self.nodeList)
 
     def backward(self, grad):
-        pass
+        return [grad for _ in self.nodeList]
 
 
 class MSELoss(Operation):
