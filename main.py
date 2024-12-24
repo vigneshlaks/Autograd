@@ -1,13 +1,18 @@
 class Optimizer:
     def __init__(self, learning_rate=0.01):
-        pass
+        self.learning_rate = learning_rate
 
     # tells us what direction to go
     def compute_loss(self, node):
         pass
 
     def take_gradient_step(self, node):
-        pass
+        if node.gradient:
+            node.data -= self.learning_rate * node.gradient
+
+        # recursively take gradient steps
+        for node in node.input_nodes:
+            self.take_gradient_step(node)
 
 # Computation Graph Node
 class Node:
@@ -89,12 +94,28 @@ class Add(Operation):
 
 class MSELoss(Operation):
     def __init__(self, prediction_node, ground_truth):
-        pass
+        self.prediction_node = prediction_node
+        self.ground_truth = ground_truth
 
     def forward(self):
-        pass
+        loss = (self.prediction_node.data - self.ground_truth) ** 2
+        return LossNode(loss, self, [self.prediction_node])
 
     def backward(self, grad=1):
-        pass
+        grad = 2 * (self.prediction_node.data - self.ground_truth)
+        return [grad]
 
+# create prediction node
+n1 = Node(5)
+# create loss node
+mse_loss_node = MSELoss(n1, 6).forward()
+
+# check initial loss
+print(mse_loss_node)
+# do backprop
+for i in range(500):
+    mse_loss_node.compute_gradient()
+    print(f"\non iteration {i}")
+    print(mse_loss_node)
+    print(n1)
 
