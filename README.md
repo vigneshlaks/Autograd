@@ -28,7 +28,7 @@ After taking our gradient step, we can think of ourselves on a different part of
 
 In designing this autograd engine, we structured our code using object-oriented programming principles. Each class in the system has a clear role, mirroring fundamental neural network concepts. This allowed us to map our mental model of a neural network more directly into code and organize our thoughts. This also improved readability of code and allows us extend our implementation to more operations and optimization techniques.
 
-## Creating an Autograd Engine (Pertinent Theory)
+# Creating an Autograd Engine (Pertinent Theory)
 
 ### Backprop
 #### Intuitions for Partial Derivatives and Chain Rule
