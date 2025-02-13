@@ -1,5 +1,6 @@
 from typing import Optional, List
 
+
 class Optimizer:
     def __init__(self, learning_rate=0.01):
         self.learning_rate = learning_rate
@@ -13,9 +14,6 @@ class Optimizer:
 
         if node.op:
             node.op.forward()
-
-
-
 
 
 # Computation Graph Node
@@ -54,7 +52,6 @@ class Node:
 
 # regular node but with optimizer
 class LossNode(Node):
-
     optimizer = Optimizer()
 
     def __init__(self, data, op=None, input_nodes=None, gradient=0):
@@ -117,20 +114,20 @@ class MSELoss(Operation):
         self.node.data = loss
 
     def backward(self, grad=1):
-            grad = 2 * (self.prediction_node.data - self.ground_truth)
-            return [grad]
+        grad = 2 * (self.prediction_node.data - self.ground_truth)
+        return [grad]
 
 
 # create prediction node
 n1 = Node(5)
-n2 = Node(2)
+n2 = Node(-2)
 n3 = Add(n1, n2).forward_node()
 # create loss node
 mse_loss_node = MSELoss(n3, 6).forward_node()
 
 # check initial loss
 print(mse_loss_node)
-for i in range(50):
+for i in range(1000):
     mse_loss_node.compute_gradient()
     print(f"\non iteration {i+1}")
     print(mse_loss_node)

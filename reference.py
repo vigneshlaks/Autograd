@@ -1,5 +1,7 @@
 '''
 Not my code used as reference to see how the simpler autograd can be iterated upon.
+
+
 '''
 
 import numpy
@@ -113,6 +115,7 @@ class Constant(Node):
     @partial_derivative.setter
     def partial_derivative(self, value: numpy.ndarray):
         pass
+
 
 class Parameter(Node):
 
