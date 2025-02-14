@@ -8,8 +8,9 @@ class Optimizer:
         self.learning_rate = learning_rate
 
     def take_gradient_step(self, node):
-        if node.gradient:
-            node.data -= self.learning_rate * node.gradient
+        # handles weight updates for particular node
+        if node.op:
+            node.op.take_gradient_step(self.learning_rate)
 
         for input_node in node.input_nodes:
             self.take_gradient_step(input_node)
@@ -28,7 +29,6 @@ class Node:
         self.data = data
         self.gradient = gradient
 
-
         # For backprop
         self.input_nodes = input_nodes if input_nodes is not None else []
         self.op = op
@@ -44,7 +44,6 @@ class Node:
 
     # recursively calls backward
     def autograd(self, grad=1):
-
         # add to global grad
         self.gradient += grad
 
@@ -87,12 +86,14 @@ class Operation:
     def backward(self, grad):
         raise NotImplementedError("Implement Backward Function")
 
+    def take_gradient_step(self, learning_rate):
+        raise NotImplementedError("Implement Gradient Step")
+
 
 class Add(Operation):
     def __init__(self, *nodes):
-        self.nodeList = nodes
         self.valueList = np.array([node.data for node in nodes])
-        self.weights = np.array([1] * len(self.valueList))
+        self.weights = np.array([1.0] * len(self.valueList))
 
         # init node
         data = np.dot(self.valueList, self.weights)
@@ -101,7 +102,8 @@ class Add(Operation):
     def get_node(self):
         return self.node
 
-
+    def take_gradient_step(self, learning_rate):
+        self.weights -= float(self.node.gradient * learning_rate)
     def forward(self):
         self.node.data = np.dot(self.valueList, self.weights)
 
@@ -115,9 +117,12 @@ class MSELoss(Operation):
         self.prediction_node = prediction_node
         self.ground_truth = ground_truth
         self.node = None
-        loss = (self.prediction_node.data - self.ground_truth) ** 2
 
+        loss = (self.prediction_node.data - self.ground_truth) ** 2
         self.node = LossNode(loss, self, [self.prediction_node])
+
+    def take_gradient_step(self, learning_rate):
+        self.node.data -= learning_rate * self.node.gradient
 
     def get_node(self):
         return self.node
@@ -135,15 +140,16 @@ class MSELoss(Operation):
 n2 = Node(2)
 n1 = Node(5)
 n3 = Add(n1, n2).get_node()
+n4 = Node(90)
+n5 = Add(n4, n3).get_node()
 
 # create loss node
-mse_loss_node = MSELoss(n3, 6).get_node()
+mse_loss_node = MSELoss(n5, 8).get_node()
 
 # check initial loss
-for i in range(50):
+for i in range(100):
     mse_loss_node.compute_gradient()
     print(f"\non iteration {i+1}")
     print(mse_loss_node)
-    print(n1)
-    print(n2)
-    print(n3)
+    print("n3 node " + str(n3))
+    print(n5)
